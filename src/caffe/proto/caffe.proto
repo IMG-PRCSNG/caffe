@@ -717,6 +717,11 @@ message LayerParameter {
   // NVIDIA PARAMETERS (Start with 68 because NV is 68 on an old-style phone)
   optional DetectNetGroundTruthParameter detectnet_groundtruth_param = 6801;
   optional DetectNetAugmentationParameter detectnet_augmentation_param = 6802;
+
+  optional LSTMParameter lstm_param = 8266708;
+  optional ReverseParameter reverse_param=8266709;
+  optional TransposeParameter transpose_param=8266710;
+
 }
 
 // Message that stores parameters used to apply transformation
@@ -2343,4 +2348,24 @@ message PReLUParameter {
   optional FillerParameter filler = 1;
   // Whether or not slope parameters are shared across channels.
   optional bool channel_shared = 2 [default = false];
+}
+
+// Message that stores parameters used by LSTMParameter
+message LSTMParameter {
+  optional uint32 num_output = 1; // The number of outputs for the layer
+  optional float clipping_threshold = 2 [default = 0.0];
+  optional FillerParameter weight_filler = 3; // The filler for weight
+  optional FillerParameter bias_filler = 4; // The filler for the bias
+  optional uint32 batch_size = 5 [default = 1];
+}
+
+message TransposeParameter {
+  // For example, if you want to transpose NxCxHxW into WxNxHxC,
+  // the parameter should be the following:
+  // transpose_param { dim: 3 dim: 0 dim: 2 dim: 1 }
+  // ie, if the i-th dim has value n, then the i-th axis of top is equal to the n-th axis of bottom.
+  repeated int32 dim=1;
+}
+message ReverseParameter {
+  optional int32 axis=1 [default=0];
 }
