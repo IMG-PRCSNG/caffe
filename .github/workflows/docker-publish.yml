@@ -1,0 +1,79 @@
+name: Docker
+
+on:
+  push:
+    # Publish `master` as Docker `latest` image.
+    branches:
+      - master
+
+    # Publish `v1.2.3` tags as releases.
+    tags:
+      - v*
+
+  # Run tests for any PRs.
+  pull_request:
+    branches: 
+      - master
+
+env:
+  # TODO: Change variable to your image's name.
+  DOCKER_BUILDKIT: 1
+  REGISTRY: docker.pkg.github.com/${{ github.repository }}
+
+jobs:
+  # Push image to GitHub Packages.
+  # See also https://docs.docker.com/docker-hub/builds/
+  build:
+     runs-on: ubuntu-latest
+     steps:
+      - uses: actions/checkout@v2
+
+      - name: Log into registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin
+
+      - name: Build package
+        run: |
+          export REGISTRY=$(echo $REGISTRY | tr '[A-Z]' '[a-z]') 
+          docker-compose config
+          docker-compose build
+          
+  push:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v2
+      - name: Log into registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin
+
+      - name: Build image
+        run: |
+          # Change all uppercase to lowercase
+          export REGISTRY=$(echo $REGISTRY | tr '[A-Z]' '[a-z]')
+            
+          # Strip git ref prefix from version
+          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
+
+          # Strip "v" prefix from tag name
+          [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
+
+          # Use Docker `latest` tag convention
+          [ "$VERSION" == "master" ] && VERSION=latest
+         
+          export VERSION=$VERSION
+          
+          docker-compose config
+          docker-compose build
+          docker-compose push
+      
+      - name: Push other images
+        if: "${{ github.ref == 'master' }}"
+        run: |
+          export REGISTRY=$(echo $REGISTRY | tr '[A-Z]' '[a-z]')
+        
+          STAGE=env docker-compose config
+          STAGE=env docker-compose build
+          STAGE=env docker-compose push
+          
+          STAGE=dev docker-compose config
+          STAGE=dev docker-compose build
+          STAGE=dev docker-compose push
