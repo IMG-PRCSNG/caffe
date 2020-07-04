@@ -1,0 +1,30 @@
+version: '2.3'
+
+services:
+  nvcaffe:
+      working_dir: /caffe
+      command: ["/bin/bash", "-c", "/bin/bash build.sh; exec /bin/bash", ]
+      stdin_open: true
+      init: true
+      tty: true
+      environment:
+      - LC_ALL=C.UTF-8
+
+      build:
+          context: .
+          dockerfile: Dockerfile
+          target: nvcaffe-${STAGE:-package}
+          args:
+              - python_version_prefix=3
+              - python_version=3.6
+              - python_version_full=3.6.9
+          cache_from:
+            - nvidia/cuda:10.1-cudnn7-devel-ubuntu18.04
+            - ${REGISTRY}/nvcaffe-env:latest
+            - ${REGISTRY}/nvcaffe-dev:latest
+            - ${REGISTRY}/nvcaffe-package:latest
+            
+
+      image: ${REGISTRY}/nvcaffe-${STAGE:-package}:${VERSION:-latest}
+      volumes:
+      - ./:/caffe
