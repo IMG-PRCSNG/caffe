@@ -2,9 +2,9 @@ name: Docker
 
 on:
   push:
-    # Publish `master` as Docker `latest` image.
+    # Publish `caffe-0.17` as Docker `latest` image.
     branches:
-      - master
+      - caffe-0.17
 
     # Publish `v1.2.3` tags as releases.
     tags:
@@ -13,11 +13,12 @@ on:
   # Run tests for any PRs.
   pull_request:
     branches: 
-      - master
+      - caffe-0.17
 
 env:
   # TODO: Change variable to your image's name.
   DOCKER_BUILDKIT: 1
+  COMPOSE_DOCKER_CLI_BUILD: 1
   REGISTRY: docker.pkg.github.com/${{ github.repository }}
 
 jobs:
@@ -35,7 +36,7 @@ jobs:
         run: |
           export REGISTRY=$(echo $REGISTRY | tr '[A-Z]' '[a-z]') 
           docker-compose config
-          docker-compose build
+          docker-compose build --build-arg BUILDKIT_INLINE_CACHE=1
           
   push:
     runs-on: ubuntu-latest
@@ -57,23 +58,23 @@ jobs:
           [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
 
           # Use Docker `latest` tag convention
-          [ "$VERSION" == "master" ] && VERSION=latest
+          [ "$VERSION" == "caffe-0.17" ] && VERSION=latest
          
           export VERSION=$VERSION
           
           docker-compose config
-          docker-compose build
+          docker-compose build --build-arg BUILDKIT_INLINE_CACHE=1
           docker-compose push
       
       - name: Push other images
-        if: "${{ github.ref == 'master' }}"
+        if: "${{ github.ref == 'caffe-0.17' }}"
         run: |
           export REGISTRY=$(echo $REGISTRY | tr '[A-Z]' '[a-z]')
-        
-          STAGE=env docker-compose config
-          STAGE=env docker-compose build
-          STAGE=env docker-compose push
           
+          STAGE=env docker-compose config
+          STAGE=env docker-compose build --build-arg BUILDKIT_INLINE_CACHE=1
+          STAGE=env docker-compose push
+
           STAGE=dev docker-compose config
-          STAGE=dev docker-compose build
+          STAGE=dev docker-compose build --build-arg BUILDKIT_INLINE_CACHE=1
           STAGE=dev docker-compose push
