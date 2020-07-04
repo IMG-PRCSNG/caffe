@@ -1,3 +1,11 @@
+# Additions
+
+Layers from CTPN [caffe](https://github.com/tianzhi0549/CTPN/tree/master/caffe) (Transpose,
+Reverese, Lstm) are ported to this fork, compatible with nvcaffe api. We can now 
+leverage the latest CUDNN, CUDA, TRT support, FP16, etc to speed up inference time of CTPN. 
+
+See this [fork](https://github.com/IMG-PRCSNG/CTPN) for usage.
+
 # Caffe
 
 Caffe is a deep learning framework made with expression, speed, and modularity in mind.
