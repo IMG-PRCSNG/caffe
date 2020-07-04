@@ -39,6 +39,7 @@ jobs:
           docker-compose build --build-arg BUILDKIT_INLINE_CACHE=1
           
   push:
+    needs: build
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
     steps:
