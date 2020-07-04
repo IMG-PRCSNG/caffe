@@ -80,9 +80,8 @@ LABEL "Version"="0.17.4" \
 FROM nvcaffe-env as nvcaffe-dev
 
 WORKDIR /caffe
-COPY ./build ./build
 COPY . .
-RUN build.sh
+RUN /bin/bash build.sh
 
 FROM scratch AS nvcaffe-package
 COPY --from=nvcaffe-dev /opt/install /opt/install 
