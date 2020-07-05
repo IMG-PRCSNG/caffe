@@ -98,7 +98,8 @@ jobs:
           STAGE=dev docker-compose build --build-arg BUILDKIT_INLINE_CACHE=1
           STAGE=dev docker-compose push
 
-          STAGE=dev docker-compose run --name nvcaffe-tmp nvcaffe /bin/bash -c "echo hello"
+          STAGE=dev docker-compose run --name nvcaffe-tmp nvcaffe /bin/bash -c "ls; pwd"
+          docker ps -a
           docker cp nvcaffe-tmp:/caffe/build .
           STAGE=dev docker-compose down
 
