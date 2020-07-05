@@ -31,7 +31,6 @@ jobs:
 
       - name: Log into registry
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin
-
       - name: Cache build directory
         uses: actions/cache@v1
         env:
@@ -43,7 +42,11 @@ jobs:
 
       - name: Build package
         run: |
-          export REGISTRY=$(echo $REGISTRY | tr '[A-Z]' '[a-z]') 
+          export REGISTRY=$(echo $REGISTRY | tr '[A-Z]' '[a-z]')
+          STAGE=env docker-compose pull -q || true
+          STAGE=dev docker-compose pull -q || true
+          docker-compose pull -q || true
+          
           docker-compose config
           docker-compose build --build-arg BUILDKIT_INLINE_CACHE=1
           
@@ -64,12 +67,21 @@ jobs:
           # npm cache files are stored in `~/.npm` on Linux/macOS
           path: build
           key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('build/CMakeCache.txt') }}
-
+      - name: Pull other images
+        run: |
+          # Change all uppercase to lowercase
+          export REGISTRY=$(echo $REGISTRY | tr '[A-Z]' '[a-z]')
+          
+          # Pull other images to act as cache
+          STAGE=env docker-compose pull -q || true
+          STAGE=dev docker-compose pull -q || true
+          docker-compose pull -q || true
+          
       - name: Build image
         run: |
           # Change all uppercase to lowercase
           export REGISTRY=$(echo $REGISTRY | tr '[A-Z]' '[a-z]')
-            
+          
           # Strip git ref prefix from version
           VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
 
@@ -99,7 +111,5 @@ jobs:
           STAGE=dev docker-compose push
 
           STAGE=dev docker-compose run --name nvcaffe-tmp nvcaffe /bin/bash -c "ls; pwd"
-          docker ps -a
           docker cp nvcaffe-tmp:/caffe/build .
           STAGE=dev docker-compose down
-
