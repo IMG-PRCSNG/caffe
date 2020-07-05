@@ -84,8 +84,9 @@ jobs:
           docker-compose config
           docker-compose build --build-arg BUILDKIT_INLINE_CACHE=1
           docker-compose push
-          docker-compose run --name nvcaffe-tmp nvcaffe touch /tmp/hello.txt
+          docker-compose run --name nvcaffe-tmp nvcaffe /bin/bash -c "echo hello"
           docker cp nvcaffe-tmp:/caffe/build .
+          docker-compose down
 
       - name: Push other images
         if: "${{ github.ref == 'caffe-0.17' }}"
