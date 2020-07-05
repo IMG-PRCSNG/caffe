@@ -20,11 +20,10 @@ services:
               - python_version_full=3.6.9
           cache_from:
             - nvidia/cuda:10.1-cudnn7-devel-ubuntu18.04
+            - nvidia/cuda:10.1-cudnn7-runtime-ubuntu18.04
             - ${REGISTRY}/nvcaffe-env:latest
             - ${REGISTRY}/nvcaffe-dev:latest
             - ${REGISTRY}/nvcaffe-package:latest
             
 
       image: ${REGISTRY}/nvcaffe-${STAGE:-package}:${VERSION:-latest}
-      volumes:
-      - ./:/caffe
