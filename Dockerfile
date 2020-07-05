@@ -1,3 +1,7 @@
+ARG python_version_prefix=3
+ARG python_version=3.6
+ARG python_version_full=3.6.9
+
 FROM nvidia/cuda:10.1-cudnn7-devel-ubuntu18.04 AS nvcaffe-env
 
 ARG python_version_prefix
@@ -8,7 +12,7 @@ ENV PREFIX=/opt/install
 ENV LD_LIBRARY_PATH=${PREFIX}/lib:${LD_LIBRARY_PATH} \
     PATH=${PREFIX}/bin:${PATH} \
     PYTHONPATH=${PREFIX}/python \
-    PYTHON_VERSION=${python_version_full}
+    PYTHON_VERSION=${python_version}
 
 RUN \
     buildDeps="ca-certificates \
@@ -94,7 +98,7 @@ ENV PREFIX=/opt/install
 ENV LD_LIBRARY_PATH=${PREFIX}/lib:${LD_LIBRARY_PATH} \
     PATH=${PREFIX}/bin:${PATH} \
     PYTHONPATH=${PREFIX}/python \
-    PYTHON_VERSION=${python_version_full}
+    PYTHON_VERSION=${python_version}
 
 
 RUN rm -f /etc/apt/sources.list.d/cuda.list /etc/apt/sources.list.d/nvidia-ml.list && \
