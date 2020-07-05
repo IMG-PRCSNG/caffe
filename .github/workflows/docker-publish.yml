@@ -31,6 +31,10 @@ jobs:
 
       - name: Log into registry
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin
+
+      - name: export registry as env var
+        run: echo "::set-env name=REGISTRY::$(echo $REGISTRY | tr '[A-Z]' '[a-z]')"
+
       - name: Cache build directory
         uses: actions/cache@v1
         env:
@@ -40,9 +44,9 @@ jobs:
           path: build
           key: ${{ runner.os }}-${{ env.cache-name }}-${{ github.sha }}
           restore-keys: ${{ runner.os }}-${{ env.cache-name }}
+
       - name: Build package
         run: |
-          export REGISTRY=$(echo $REGISTRY | tr '[A-Z]' '[a-z]')
           STAGE=env docker-compose pull -q || true
           STAGE=dev docker-compose pull -q || true
           docker-compose pull -q || true
@@ -56,8 +60,12 @@ jobs:
     if: github.event_name == 'push'
     steps:
       - uses: actions/checkout@v2
+
       - name: Log into registry
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin
+
+      - name: export registry as env var
+        run: echo "::set-env name=REGISTRY::$(echo $REGISTRY | tr '[A-Z]' '[a-z]')"
 
       - name: Cache build directory
         uses: actions/cache@v1
@@ -67,11 +75,9 @@ jobs:
           # npm cache files are stored in `~/.npm` on Linux/macOS
           path: build
           key: ${{ runner.os }}-${{ env.cache-name }}
+
       - name: Pull other images
         run: |
-          # Change all uppercase to lowercase
-          export REGISTRY=$(echo $REGISTRY | tr '[A-Z]' '[a-z]')
-          
           # Pull other images to act as cache
           STAGE=env docker-compose pull -q || true
           STAGE=dev docker-compose pull -q || true
@@ -79,9 +85,6 @@ jobs:
           
       - name: Build image
         run: |
-          # Change all uppercase to lowercase
-          export REGISTRY=$(echo $REGISTRY | tr '[A-Z]' '[a-z]')
-          
           # Strip git ref prefix from version
           VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
 
@@ -100,8 +103,6 @@ jobs:
       - name: Push other images
         if: "${{ endsWith(github.ref, 'caffe-0.17') }}"
         run: |
-          export REGISTRY=$(echo $REGISTRY | tr '[A-Z]' '[a-z]')
-          
           STAGE=env docker-compose config
           STAGE=env docker-compose build --build-arg BUILDKIT_INLINE_CACHE=1
           STAGE=env docker-compose push
@@ -110,6 +111,9 @@ jobs:
           STAGE=dev docker-compose build --build-arg BUILDKIT_INLINE_CACHE=1
           STAGE=dev docker-compose push
 
+      - name: Copy cache
+        if: "${{ endsWith(github.ref, 'caffe-0.17') }}"
+        run: |
           STAGE=dev docker-compose run --name nvcaffe-tmp nvcaffe /bin/bash -c "ls; pwd"
           docker cp nvcaffe-tmp:/caffe/build .
           STAGE=dev docker-compose down
