@@ -86,7 +86,7 @@ jobs:
           docker-compose push
 
       - name: Push other images
-        if: "${{ github.ref == 'caffe-0.17' }}"
+        if: "${{ endsWith(github.ref, 'caffe-0.17') }}"
         run: |
           export REGISTRY=$(echo $REGISTRY | tr '[A-Z]' '[a-z]')
           
