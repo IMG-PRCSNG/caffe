@@ -1,8 +1,8 @@
+FROM nvidia/cuda:10.1-cudnn7-devel-ubuntu18.04 AS nvcaffe-env
+
 ARG python_version_prefix
 ARG python_version
 ARG python_version_full
-
-FROM nvidia/cuda:10.1-cudnn7-devel-ubuntu18.04 AS nvcaffe-env
 
 ENV PREFIX=/opt/install
 ENV LD_LIBRARY_PATH=${PREFIX}/lib:${LD_LIBRARY_PATH} \
@@ -84,6 +84,11 @@ COPY . .
 RUN /bin/bash build.sh
 
 FROM nvidia/cuda:10.1-cudnn7-runtime-ubuntu18.04 AS nvcaffe-package
+
+ARG python_version_prefix
+ARG python_version
+ARG python_version_full
+
 
 ENV PREFIX=/opt/install
 ENV LD_LIBRARY_PATH=${PREFIX}/lib:${LD_LIBRARY_PATH} \
